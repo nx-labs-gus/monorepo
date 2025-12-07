@@ -27,6 +27,14 @@ jobs:
         with:
           node-version: 25
           cache: 'npm'
+          # In monorepos the lockfile may live in subfolders. Provide
+          # multiple patterns so the action can find the dependency lockfile
+          # used to compute the npm cache key.
+          cache-dependency-path: |
+            package-lock.json
+            **/package-lock.json
+            yarn.lock
+            npm-shrinkwrap.json
 
       - name: Install JS dependencies
         run: npm ci
