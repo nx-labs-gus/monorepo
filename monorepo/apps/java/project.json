@@ -26,6 +26,29 @@
         "parallel": false
       }
     }
+    ,
+    "docker": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 --push -t ghcr.io/${GITHUB_REPOSITORY_OWNER}/java-app:${GITHUB_SHA} apps/java"
+          }
+        ],
+        "parallel": false
+      }
+    },
+    "docker-local": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 --load -t java-app:local apps/java"
+          }
+        ],
+        "parallel": false
+      }
+    }
   },
   "tags": []
 }

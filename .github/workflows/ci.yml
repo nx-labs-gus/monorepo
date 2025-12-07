@@ -8,7 +8,7 @@ on:
 
 permissions:
   actions: read
-  contents: read
+  contents: write
 
 jobs:
   main:
@@ -36,6 +36,8 @@ jobs:
         working-directory: monorepo
       - uses: nrwl/nx-set-shas@v4
 
+
+
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
       - run: npx nx affected -t lint test build
@@ -44,3 +46,40 @@ jobs:
       - run: npx nx fix-ci
         working-directory: monorepo
         if: always()
+
+      # Build all apps in the monorepo
+      - name: Build all apps
+        run: npx nx run-many --target=build --all
+        working-directory: monorepo
+
+      # Log in to Docker Hub (requires secrets: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN)
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Build and push Docker images for apps that include a Dockerfile
+      - name: Build and push Docker images for apps
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          set -euo pipefail
+          cd monorepo
+          # Find Dockerfiles tracked by git under apps/
+          mapfile -t files < <(git ls-files 'apps/**/Dockerfile' || true)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No Dockerfiles found under apps/ — skipping image build"
+            exit 0
+          fi
+          for dockerfile in "${files[@]}"; do
+            dir=$(dirname "$dockerfile")
+            app=$(basename "$dir")
+            # Tag images with short SHA for traceability
+            tag=${GITHUB_SHA:0:8}
+            image="${DOCKERHUB_USERNAME}/${app}:${tag}"
+            echo "Building image $image from $dir"
+            docker build -t "$image" "$dir"
+            echo "Pushing $image"
+            docker push "$image"
+          done
