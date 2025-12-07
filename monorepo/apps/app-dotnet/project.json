@@ -1,0 +1,64 @@
+{
+  "name": "app-dotnet",
+  "root": "apps/app-dotnet",
+  "sourceRoot": "apps/app-dotnet",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "dotnet build apps/app-dotnet/AppDotnet.csproj -c Release -o apps/app-dotnet/dist"
+          }
+        ],
+        "parallel": false
+      }
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "dotnet publish apps/app-dotnet/AppDotnet.csproj -c Release -o apps/app-dotnet/dist/publish"
+          }
+        ],
+        "parallel": false
+      }
+    },
+    "run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "dotnet run --project apps/app-dotnet/AppDotnet.csproj"
+          }
+        ],
+        "parallel": false
+      }
+    },
+    "docker": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 --push -t ${DOCKERHUB_USERNAME}/app-dotnet:${GITHUB_SHA} apps/app-dotnet"
+          }
+        ],
+        "parallel": false
+      }
+    },
+    "docker-local": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 --load -t app-dotnet:local apps/app-dotnet"
+          }
+        ],
+        "parallel": false
+      }
+    }
+  },
+  "tags": []
+}

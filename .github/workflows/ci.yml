@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  main:
+  CI-NX:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
