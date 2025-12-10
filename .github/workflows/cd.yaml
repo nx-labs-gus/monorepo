@@ -1,0 +1,72 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  CD-Deploy:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get the short SHA from CI workflow
+        id: sha
+        run: |
+          SHORT_SHA=${{ github.event.workflow_run.head_commit.id }}
+          SHORT_SHA=${SHORT_SHA:0:8}
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "Using image tag: $SHORT_SHA"
+
+      - name: Update composition.yaml with new image tags
+        run: |
+          set -euo pipefail
+          
+          DOCKER_TAG=${{ steps.sha.outputs.short_sha }}
+          COMPOSITION_FILE="application-manifest/composition.yaml"
+          
+          echo "Updating $COMPOSITION_FILE with tag: $DOCKER_TAG"
+          
+          # Dinamically update all app images from apps/ directory
+          cd monorepo
+          mapfile -t dockerfiles < <(git ls-files 'apps/**/Dockerfile' || true)
+          
+          if [ ${#dockerfiles[@]} -eq 0 ]; then
+            echo "No Dockerfiles found under apps/"
+            exit 0
+          fi
+          
+          cd ..
+          for dockerfile in "${dockerfiles[@]}"; do
+            app=$(basename "$(dirname "$dockerfile")")
+            echo "Updating tag for $app"
+            sed -i "s|gustavoivo/${app}:latest|gustavoivo/${app}:${DOCKER_TAG}|g" "$COMPOSITION_FILE"
+          done
+          
+          echo "Updated $COMPOSITION_FILE:"
+          cat "$COMPOSITION_FILE"
+
+      - name: Validate composition.yaml changes
+        run: |
+          echo "=== Validating composition.yaml ==="
+          cat application-manifest/composition.yaml
+          echo ""
+          echo "=== Checking for 'latest' tags ==="
+          if grep -q ":latest" application-manifest/composition.yaml; then
+            echo "⚠️  WARNING: Found remaining ':latest' tags in composition.yaml"
+            grep ":latest" application-manifest/composition.yaml
+          else
+            echo "✓ All tags successfully updated from ':latest'"
+          fi
+

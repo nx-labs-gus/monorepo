@@ -1,0 +1,25 @@
+kind: guslabs.io
+metadata:
+  name: composition-manifest
+spec:
+  resources:
+    - name: dynamoDB
+      type: aws-dynamodb-table
+      properties:
+        tableName: composition-table
+        attributeDefinitions:
+          - attributeName: id
+            attributeType: S
+        keySchema:
+          - attributeName: id
+            keyType: HASH
+        provisionedThroughput:
+          readCapacityUnits: 5
+          writeCapacityUnits: 5
+  applications:
+    - name: app-dotnet
+      image: gustavoivo/app-dotnet:latest
+      port: 8080
+    - name: app-java
+      image: gustavoivo/app-java:latest
+      port: 8081

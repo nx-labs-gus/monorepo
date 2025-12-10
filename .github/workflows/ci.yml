@@ -47,20 +47,20 @@ jobs:
         working-directory: monorepo
         if: always()
 
-      # Build all apps in the monorepo
-      - name: Determine affected projects
-        id: affected
-        working-directory: monorepo
-        run: |
-          set -euo pipefail
-          # Print affected projects as a JSON array; fall back to empty array on error
-          affected=$(npx nx print-affected --select=projects --base=origin/main --head=${GITHUB_SHA} 2>/dev/null || echo '[]')
-          # Remove newlines and spaces for reliable comparison
-          affected=$(echo "$affected" | tr -d '\n' | sed 's/ //g')
-          echo "affected=$affected" >> $GITHUB_OUTPUT
+      # # Build all apps in the monorepo
+      # - name: Determine affected projects
+      #   id: affected
+      #   working-directory: monorepo
+      #   run: |
+      #     set -euo pipefail
+      #     # Print affected projects as a JSON array; fall back to empty array on error
+      #     affected=$(npx nx print-affected --select=projects --base=origin/main --head=${GITHUB_SHA} 2>/dev/null || echo '[]')
+      #     # Remove newlines and spaces for reliable comparison
+      #     affected=$(echo "$affected" | tr -d '\n' | sed 's/ //g')
+      #     echo "affected=$affected" >> $GITHUB_OUTPUT
 
       - name: Build all apps
-        if: steps.affected.outputs.affected != '[]'
+        # if: steps.affected.outputs.affected != '[]'
         run: npx nx run-many --target=build --all
         working-directory: monorepo
 
