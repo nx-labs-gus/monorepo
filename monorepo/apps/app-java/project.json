@@ -1,7 +1,7 @@
 {
-  "name": "java",
-  "root": "apps/java",
-  "sourceRoot": "apps/java/src",
+  "name": "app-java",
+  "root": "apps/app-java",
+  "sourceRoot": "apps/app-java/src",
   "projectType": "application",
   "targets": {
     "build": {
@@ -9,7 +9,7 @@
       "options": {
         "commands": [
           {
-            "command": "mvn -B -f apps/java/pom.xml -DskipTests=false clean package"
+            "command": "mvn -B -f apps/app-java/pom.xml -DskipTests=false clean package"
           }
         ],
         "parallel": false
@@ -20,7 +20,7 @@
       "options": {
         "commands": [
           {
-            "command": "mvn -B -f apps/java/pom.xml test"
+            "command": "mvn -B -f apps/app-java/pom.xml test"
           }
         ],
         "parallel": false
@@ -32,7 +32,7 @@
       "options": {
         "commands": [
           {
-            "command": "DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 --push -t ghcr.io/${GITHUB_REPOSITORY_OWNER}/java-app:${GITHUB_SHA} apps/java"
+            "command": "DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 --push -t ghcr.io/${GITHUB_REPOSITORY_OWNER}/app-java:${GITHUB_SHA} apps/app-java"
           }
         ],
         "parallel": false
@@ -43,7 +43,7 @@
       "options": {
         "commands": [
           {
-            "command": "DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 --load -t java-app:local apps/java"
+            "command": "DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64 --load -t app-java:local apps/app-java"
           }
         ],
         "parallel": false
